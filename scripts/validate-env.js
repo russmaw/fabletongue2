@@ -1,18 +1,15 @@
 #!/usr/bin/env node
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-import { existsSync } from 'fs';
+const dotenv = require('dotenv');
+const path = require('path');
+const fs = require('fs');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const rootDir = resolve(__dirname, '..');
+const rootDir = path.resolve(__dirname, '..');
 
 // Load environment variables from .env files
 const envFiles = ['.env.local', '.env'];
 for (const file of envFiles) {
-  const envPath = resolve(rootDir, file);
-  if (existsSync(envPath)) {
+  const envPath = path.resolve(rootDir, file);
+  if (fs.existsSync(envPath)) {
     dotenv.config({ path: envPath });
   }
 }
