@@ -17,13 +17,12 @@ import {
   Select,
   FormControl,
   FormLabel,
-  Image,
   Divider,
   ButtonProps,
   SelectProps
 } from '@chakra-ui/react'
-import { useParams, useLocation, useNavigate } from 'react-router-dom'
-import { FaVolumeUp, FaBookmark, FaLightbulb, FaDiceD20, FaScroll } from 'react-icons/fa'
+import { useLocation } from 'react-router-dom'
+import { FaVolumeUp, FaBookmark, FaLightbulb, FaDiceD20 } from 'react-icons/fa'
 import useStoryStore from '../stores/storyStore'
 
 type Difficulty = 'beginner' | 'intermediate' | 'advanced'
@@ -80,9 +79,7 @@ const FantasyButton: React.FC<FantasyButtonProps> = ({ children, ...props }) => 
 )
 
 const Story: React.FC = () => {
-  const { id } = useParams<{ id: string }>()
   const location = useLocation()
-  const navigate = useNavigate()
   const toast = useToast()
   const isBedtimeMode = location.search.includes('mode=bedtime')
   
