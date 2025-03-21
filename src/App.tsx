@@ -1,41 +1,11 @@
 import React, { Suspense } from 'react'
-import { ChakraProvider, Box, Spinner } from '@chakra-ui/react'
-import { BrowserRouter as Router } from 'react-router-dom'
+import { ChakraProvider, Box, Spinner, Text } from '@chakra-ui/react'
+import { BrowserRouter } from 'react-router-dom'
 import fantasyTheme from './theme/fantasyTheme'
 import AppRoutes from './routes'
+import { SecurityProvider } from './contexts/SecurityContext'
 
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props)
-    this.state = { hasError: false }
-  }
-
-  static getDerivedStateFromError() {
-    return { hasError: true }
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo)
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <Box p={8} textAlign="center">
-          <h1>Something went wrong.</h1>
-          <button onClick={() => window.location.reload()}>Refresh Page</button>
-        </Box>
-      )
-    }
-
-    return this.props.children
-  }
-}
-
-// Load fonts using preconnect and preload
+// Fonts Component
 const Fonts = () => (
   <>
     <link
@@ -56,13 +26,47 @@ const Fonts = () => (
   </>
 )
 
+// Error Boundary Component
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Box p={4} textAlign="center">
+          <Text fontSize="xl" color="red.500">
+            Something went wrong. Please refresh the page.
+          </Text>
+        </Box>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
+// Loading Spinner Component
 const LoadingSpinner = () => (
   <Box
-    height="100vh"
-    width="100vw"
     display="flex"
-    alignItems="center"
     justifyContent="center"
+    alignItems="center"
+    minH="100vh"
+    bg="gray.50"
   >
     <Spinner
       thickness="4px"
@@ -78,12 +82,14 @@ function App() {
   return (
     <ErrorBoundary>
       <ChakraProvider theme={fantasyTheme}>
-        <Fonts />
-        <Router>
-          <Suspense fallback={<LoadingSpinner />}>
-            <AppRoutes />
-          </Suspense>
-        </Router>
+        <SecurityProvider>
+          <Fonts />
+          <BrowserRouter>
+            <Suspense fallback={<LoadingSpinner />}>
+              <AppRoutes />
+            </Suspense>
+          </BrowserRouter>
+        </SecurityProvider>
       </ChakraProvider>
     </ErrorBoundary>
   )
