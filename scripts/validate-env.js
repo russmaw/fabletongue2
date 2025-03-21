@@ -11,19 +11,8 @@ if (fs.existsSync(envPath)) {
 
 // Required environment variables
 const requiredEnvVars = [
-  'VITE_OPENAI_API_KEY',
-  'VITE_SUPABASE_URL',
-  'VITE_SUPABASE_ANON_KEY',
-  'VITE_APP_ENV',
-  'VITE_APP_URL',
-  'VITE_API_URL'
+  'VITE_OPENAI_API_KEY'
 ];
-
-// Optional environment variables with defaults
-const optionalEnvVars = {
-  'VITE_ENABLE_ANALYTICS': 'false',
-  'VITE_ENABLE_SENTRY': 'false'
-};
 
 // Check for missing required environment variables
 const missingVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
@@ -35,12 +24,5 @@ if (missingVars.length > 0) {
   });
   process.exit(1);
 }
-
-// Set default values for optional variables
-Object.entries(optionalEnvVars).forEach(([key, defaultValue]) => {
-  if (!process.env[key]) {
-    process.env[key] = defaultValue;
-  }
-});
 
 console.log('Environment variables validated successfully'); 
