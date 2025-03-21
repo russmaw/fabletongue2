@@ -18,13 +18,25 @@ import {
   FormControl,
   FormLabel,
   Image,
-  Divider
+  Divider,
+  ButtonProps,
+  SelectProps
 } from '@chakra-ui/react'
-import { useParams, useLocation } from 'react-router-dom'
+import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { FaVolumeUp, FaBookmark, FaLightbulb, FaDiceD20, FaScroll } from 'react-icons/fa'
 import useStoryStore from '../stores/storyStore'
 
-const FantasySelect = ({ children, ...props }: any) => (
+type Difficulty = 'beginner' | 'intermediate' | 'advanced'
+
+interface FantasySelectProps extends Omit<SelectProps, 'children'> {
+  children: React.ReactNode
+}
+
+interface FantasyButtonProps extends Omit<ButtonProps, 'children'> {
+  children: React.ReactNode
+}
+
+const FantasySelect: React.FC<FantasySelectProps> = ({ children, ...props }) => (
   <Select
     bg={useColorModeValue('gray.50', 'gray.700')}
     border="2px"
@@ -45,7 +57,7 @@ const FantasySelect = ({ children, ...props }: any) => (
   </Select>
 )
 
-const FantasyButton = ({ children, ...props }: any) => (
+const FantasyButton: React.FC<FantasyButtonProps> = ({ children, ...props }) => (
   <Button
     bg={useColorModeValue('gray.700', 'gray.600')}
     color="white"
@@ -67,9 +79,10 @@ const FantasyButton = ({ children, ...props }: any) => (
   </Button>
 )
 
-const Story = () => {
-  const { id } = useParams()
+const Story: React.FC = () => {
+  const { id } = useParams<{ id: string }>()
   const location = useLocation()
+  const navigate = useNavigate()
   const toast = useToast()
   const isBedtimeMode = location.search.includes('mode=bedtime')
   
@@ -91,21 +104,6 @@ const Story = () => {
   const borderColor = useColorModeValue('gray.300', 'gray.600')
   const scrollBg = useColorModeValue('gray.100', 'gray.900')
 
-  // Generate initial story
-  React.useEffect(() => {
-    if (!story.content) {
-      generateNewStory('fantasy', 'adventure').catch((error: Error) => {
-        toast({
-          title: 'Error generating story',
-          description: error.message,
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        })
-      })
-    }
-  }, [])
-
   // Handle errors
   React.useEffect(() => {
     if (error) {
@@ -119,13 +117,34 @@ const Story = () => {
     }
   }, [error, toast])
 
-  const handleContinue = async () => {
+  // Generate initial story
+  React.useEffect(() => {
+    const generateStory = async () => {
+      try {
+        if (!story?.content) {
+          await generateNewStory('fantasy', 'adventure')
+        }
+      } catch (error) {
+        toast({
+          title: 'Error generating story',
+          description: error instanceof Error ? error.message : 'An unknown error occurred',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        })
+      }
+    }
+
+    generateStory()
+  }, [generateNewStory, story?.content, toast])
+
+  const handleContinueStory = async () => {
     try {
       await continueStory()
-    } catch (error: unknown) {
+    } catch (error) {
       toast({
         title: 'Error continuing story',
-        description: error instanceof Error ? error.message : 'Unknown error',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -133,13 +152,13 @@ const Story = () => {
     }
   }
 
-  const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setLanguage(event.target.value)
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLanguage(e.target.value)
     // Regenerate story with new language
-    generateNewStory('fantasy', 'adventure').catch((error: Error) => {
+    generateNewStory('fantasy', 'adventure').catch((error) => {
       toast({
         title: 'Error generating story',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -147,13 +166,13 @@ const Story = () => {
     })
   }
 
-  const handleDifficultyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setDifficulty(event.target.value as 'beginner' | 'intermediate' | 'advanced')
+  const handleDifficultyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setDifficulty(e.target.value as Difficulty)
     // Regenerate story with new difficulty
     generateNewStory('fantasy', 'adventure').catch((error) => {
       toast({
         title: 'Error generating story',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -161,244 +180,144 @@ const Story = () => {
     })
   }
 
+  if (loading) {
+    return (
+      <Container maxW="container.lg" py={8}>
+        <VStack spacing={8}>
+          <Skeleton height="40px" width="200px" />
+          <Skeleton height="200px" width="100%" />
+          <Skeleton height="40px" width="150px" />
+        </VStack>
+      </Container>
+    )
+  }
+
   return (
-    <Box 
-      py={{ base: 2, md: 6 }} 
-      px={{ base: 2, md: 4 }}
-      minH="100vh"
-      bg={bgColor}
-      backgroundImage="url('/parchment-bg.jpg')"
-      backgroundSize="cover"
-      backgroundAttachment="fixed"
-      backgroundPosition="center"
-    >
-      <Container maxW="container.md">
-        <VStack spacing={{ base: 3, md: 5 }} align="stretch">
+    <Box minH="100vh" bg={bgColor} py={8}>
+      <Container maxW="container.lg">
+        <VStack spacing={8} align="stretch">
+          <Flex justify="space-between" align="center">
+            <Heading 
+              as="h1" 
+              size="xl" 
+              fontFamily="serif"
+              bgGradient="linear(to-r, purple.500, pink.500)"
+              bgClip="text"
+            >
+              {isBedtimeMode ? 'Bedtime Story' : 'Your Adventure'}
+            </Heading>
+            <Flex gap={2}>
+              <Tooltip label="Read aloud">
+                <IconButton
+                  aria-label="Read aloud"
+                  icon={<FaVolumeUp />}
+                  variant="ghost"
+                />
+              </Tooltip>
+              <Tooltip label="Save story">
+                <IconButton
+                  aria-label="Save story"
+                  icon={<FaBookmark />}
+                  variant="ghost"
+                />
+              </Tooltip>
+              <Tooltip label="Story ideas">
+                <IconButton
+                  aria-label="Story ideas"
+                  icon={<FaLightbulb />}
+                  variant="ghost"
+                />
+              </Tooltip>
+            </Flex>
+          </Flex>
+
           <Card 
             bg={cardBgColor} 
-            borderColor={borderColor} 
-            borderWidth="2px"
+            borderWidth="1px" 
+            borderColor={borderColor}
             borderRadius="lg"
+            boxShadow="lg"
+            position="relative"
             overflow="hidden"
-            boxShadow="xl"
           >
+            <Box
+              position="absolute"
+              top={0}
+              left={0}
+              right={0}
+              height="4px"
+              bgGradient="linear(to-r, purple.500, pink.500)"
+            />
             <CardBody>
-              <VStack spacing={4}>
-                <Flex 
-                  w="full" 
-                  justify="space-between" 
-                  align="center"
-                  direction={{ base: 'column', sm: 'row' }}
-                  gap={3}
+              <VStack spacing={6}>
+                <Box 
+                  p={6} 
+                  bg={scrollBg} 
+                  borderRadius="md" 
+                  w="full"
+                  position="relative"
+                  _before={{
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'url(/scroll-texture.png)',
+                    opacity: 0.1,
+                    pointerEvents: 'none',
+                  }}
                 >
-                  <Heading 
-                    size={{ base: 'md', md: 'lg' }}
-                    fontFamily="serif"
-                    textTransform="uppercase"
-                    letterSpacing="wider"
-                    display="flex"
-                    alignItems="center"
-                    gap={2}
-                  >
-                    <FaScroll />
-                    {story.title || (isBedtimeMode ? 'Bedtime Tale' : 'Your Quest')}
-                  </Heading>
-                  <Flex gap={2} flexWrap="wrap" justify={{ base: 'center', sm: 'flex-end' }}>
-                    <Tooltip label="Read aloud">
-                      <IconButton
-                        aria-label="Read aloud"
-                        icon={<FaVolumeUp />}
-                        variant="outline"
-                        size={{ base: 'sm', md: 'md' }}
-                        borderWidth="2px"
-                      />
-                    </Tooltip>
-                    <Tooltip label="Save to journal">
-                      <IconButton
-                        aria-label="Save to journal"
-                        icon={<FaBookmark />}
-                        variant="outline"
-                        size={{ base: 'sm', md: 'md' }}
-                        borderWidth="2px"
-                      />
-                    </Tooltip>
-                    <Tooltip label="View scrolls">
-                      <IconButton
-                        aria-label="View scrolls"
-                        icon={<FaLightbulb />}
-                        variant="outline"
-                        size={{ base: 'sm', md: 'md' }}
-                        borderWidth="2px"
-                      />
-                    </Tooltip>
-                  </Flex>
-                </Flex>
-
-                <Divider borderColor={borderColor} />
-
-                <Flex 
-                  w="full" 
-                  gap={4} 
-                  direction={{ base: 'column', sm: 'row' }}
-                >
-                  <FormControl>
-                    <FormLabel fontFamily="serif">Tongue of Choice</FormLabel>
-                    <FantasySelect value={selectedLanguage} onChange={handleLanguageChange}>
-                      {/* Romance Languages */}
-                      <option value="Spanish">Spanish (Español)</option>
-                      <option value="French">French (Français)</option>
-                      <option value="Italian">Italian (Italiano)</option>
-                      <option value="Portuguese">Portuguese (Português)</option>
-                      <option value="Romanian">Romanian (Română)</option>
-                      {/* Germanic Languages */}
-                      <option value="German">German (Deutsch)</option>
-                      <option value="Dutch">Dutch (Nederlands)</option>
-                      <option value="Swedish">Swedish (Svenska)</option>
-                      {/* Slavic Languages */}
-                      <option value="Russian">Russian (Русский)</option>
-                      <option value="Polish">Polish (Polski)</option>
-                      {/* Asian Languages */}
-                      <option value="Japanese">Japanese (日本語)</option>
-                      <option value="Korean">Korean (한국어)</option>
-                      <option value="Mandarin">Mandarin (普通话)</option>
-                    </FantasySelect>
-                  </FormControl>
-
-                  <FormControl>
-                    <FormLabel fontFamily="serif">Mastery Level</FormLabel>
-                    <FantasySelect value={difficulty} onChange={handleDifficultyChange}>
-                      <option value="beginner">Novice</option>
-                      <option value="intermediate">Adept</option>
-                      <option value="advanced">Master</option>
-                    </FantasySelect>
-                  </FormControl>
-                </Flex>
-              </VStack>
-
-              <Box 
-                mt={6}
-                p={4}
-                bg={scrollBg}
-                borderRadius="md"
-                borderWidth="2px"
-                borderColor={borderColor}
-                position="relative"
-                _before={{
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundImage: 'url("/scroll-texture.png")',
-                  backgroundSize: 'cover',
-                  opacity: 0.1,
-                  pointerEvents: 'none',
-                }}
-              >
-                {loading ? (
-                  <VStack spacing={4} align="stretch">
-                    <Skeleton height="20px" />
-                    <Skeleton height="20px" />
-                    <Skeleton height="20px" />
-                  </VStack>
-                ) : (
                   <Text
-                    fontSize={{ base: 'md', md: 'lg' }}
-                    lineHeight="tall"
+                    fontSize="lg"
                     color={textColor}
                     whiteSpace="pre-wrap"
                     fontFamily="serif"
-                    position="relative"
-                    zIndex={1}
+                    lineHeight="tall"
                   >
-                    {story.content}
+                    {story?.content || 'Loading your story...'}
                   </Text>
-                )}
-              </Box>
-            </CardBody>
-          </Card>
+                </Box>
 
-          {story.vocabulary.length > 0 && (
-            <Card 
-              bg={cardBgColor} 
-              borderColor={borderColor} 
-              borderWidth="2px"
-              borderRadius="lg"
-              boxShadow="xl"
-            >
-              <CardBody>
-                <Heading 
-                  size="md" 
-                  mb={4}
-                  fontFamily="serif"
-                  textTransform="uppercase"
-                  letterSpacing="wide"
-                  display="flex"
-                  alignItems="center"
-                  gap={2}
-                >
-                  <FaScroll />
-                  Ancient Scrolls
-                </Heading>
-                <VStack align="stretch" spacing={3}>
-                  {story.vocabulary.map((item: { word: string; translation: string; context: string }, index: number) => (
-                    <Box 
-                      key={index}
-                      p={3}
-                      bg={scrollBg}
-                      borderRadius="md"
-                      borderWidth="1px"
-                      borderColor={borderColor}
+                <Divider />
+
+                <VStack spacing={4} w="full">
+                  <FormControl>
+                    <FormLabel>Language</FormLabel>
+                    <FantasySelect
+                      value={selectedLanguage}
+                      onChange={handleLanguageChange}
+                      isDisabled={loading}
                     >
-                      <Text fontWeight="bold" fontFamily="serif">{item.word}</Text>
-                      <Text>{item.translation}</Text>
-                      <Text fontSize="sm" color="gray.500" fontStyle="italic">{item.context}</Text>
-                    </Box>
-                  ))}
-                </VStack>
-              </CardBody>
-            </Card>
-          )}
+                      <option value="en">English</option>
+                      <option value="es">Spanish</option>
+                      <option value="fr">French</option>
+                      <option value="de">German</option>
+                    </FantasySelect>
+                  </FormControl>
 
-          <Card 
-            bg={cardBgColor} 
-            borderColor={borderColor} 
-            borderWidth="2px"
-            borderRadius="lg"
-            boxShadow="xl"
-          >
-            <CardBody>
-              <VStack spacing={4}>
-                <Heading 
-                  size={{ base: 'sm', md: 'md' }}
-                  fontFamily="serif"
-                  textTransform="uppercase"
-                  letterSpacing="wide"
-                >
-                  Choose Your Path
-                </Heading>
-                <FantasyButton
-                  size={{ base: 'md', md: 'lg' }}
-                  w="full"
-                  isLoading={loading}
-                  onClick={handleContinue}
-                  leftIcon={<FaDiceD20 />}
-                >
-                  Continue the Quest
-                </FantasyButton>
-                {!isBedtimeMode && (
+                  <FormControl>
+                    <FormLabel>Difficulty</FormLabel>
+                    <FantasySelect
+                      value={difficulty}
+                      onChange={handleDifficultyChange}
+                      isDisabled={loading}
+                    >
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </FantasySelect>
+                  </FormControl>
+
                   <FantasyButton
-                    size={{ base: 'md', md: 'lg' }}
                     w="full"
-                    variant="outline"
                     isLoading={loading}
-                    onClick={() => generateNewStory('fantasy', 'adventure')}
-                    leftIcon={<FaScroll />}
+                    onClick={handleContinueStory}
+                    leftIcon={<FaDiceD20 />}
                   >
-                    Begin a New Tale
+                    Continue the Adventure
                   </FantasyButton>
-                )}
+                </VStack>
               </VStack>
             </CardBody>
           </Card>
