@@ -11,14 +11,18 @@ type Config = {
 
 export function register(config?: Config) {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-    const publicUrl = new URL(process.env.PUBLIC_URL || '', window.location.href)
+    // Use window.location.origin as base URL if PUBLIC_URL is not set
+    const baseUrl = process.env.PUBLIC_URL || window.location.origin
+    const publicUrl = new URL(baseUrl)
     
     if (publicUrl.origin !== window.location.origin) {
+      console.error('Service worker registration failed: Mismatch between PUBLIC_URL and window.location.origin')
       return
     }
 
     window.addEventListener('load', () => {
-      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`
+      // Ensure we use the correct base path for the service worker
+      const swUrl = `${window.location.origin}/service-worker.js`
 
       if (isLocalhost) {
         checkValidServiceWorker(swUrl, config)
@@ -31,7 +35,7 @@ export function register(config?: Config) {
 
 function registerValidSW(swUrl: string, config?: Config) {
   navigator.serviceWorker
-    .register(swUrl)
+    .register(swUrl, { scope: '/' })
     .then((registration) => {
       registration.onupdatefound = () => {
         const installingWorker = registration.installing
@@ -68,8 +72,9 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
       const contentType = response.headers.get('content-type')
       if (
         response.status === 404 ||
-        (contentType != null && contentType.indexOf('javascript') === -1)
+        (contentType != null && !contentType.includes('javascript') && !contentType.includes('js'))
       ) {
+        console.error(`Invalid content type for service worker: ${contentType}`)
         navigator.serviceWorker.ready.then((registration) => {
           registration.unregister().then(() => {
             window.location.reload()
