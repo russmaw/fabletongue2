@@ -1,5 +1,5 @@
-import { extendTheme } from '@chakra-ui/theme'
-import type { ThemeConfig } from '@chakra-ui/theme'
+import { extendTheme } from '@chakra-ui/theme-tools'
+import type { ThemeConfig } from '@chakra-ui/theme-tools'
 
 const config: ThemeConfig = {
   initialColorMode: 'light',

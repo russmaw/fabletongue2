@@ -9,10 +9,11 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "validate-env": "node scripts/validate-env.js",
+    "prebuild": "npm run validate-env",
+    "build": "tsc && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "type-check": "tsc --noEmit"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
