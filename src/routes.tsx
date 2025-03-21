@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import LoadingSpinner from './components/LoadingSpinner'
 import Welcome from './components/onboarding/Welcome'
 import useOnboardingStore from './stores/onboardingStore'
@@ -10,35 +10,39 @@ const Story = React.lazy(() => import('./pages/Story'))
 const Profile = React.lazy(() => import('./pages/Profile'))
 const NotFound = React.lazy(() => import('./pages/NotFound'))
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface ProtectedRouteProps {
+  children: React.ReactNode
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { hasCompletedTutorial } = useOnboardingStore()
+  const location = useLocation()
   
-  if (!hasCompletedTutorial) {
-    return <Navigate to="/welcome" replace />
+  if (!hasCompletedTutorial && location.pathname !== '/welcome') {
+    return <Navigate to="/welcome" replace state={{ from: location }} />
   }
   
   return <>{children}</>
 }
 
 const AppRoutes = () => {
-  const { hasCompletedTutorial } = useOnboardingStore()
-  
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         <Route
           path="/"
           element={
-            hasCompletedTutorial ? (
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            ) : (
-              <Navigate to="/welcome" replace />
-            )
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
           }
         />
-        <Route path="/welcome" element={<Welcome />} />
+        
+        <Route 
+          path="/welcome" 
+          element={<Welcome />} 
+        />
+        
         <Route
           path="/story"
           element={
@@ -47,6 +51,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+        
         <Route
           path="/profile"
           element={
@@ -55,16 +60,18 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<NotFound />} />
+        
+        <Route
+          path="*"
+          element={
+            <ProtectedRoute>
+              <NotFound />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Suspense>
   )
 }
 
-    <Routes>
-      <Route path="/" element={<FantasyUIExample />} />
-    </Routes>
-  );
-};
-
-export default AppRoutes; 
+export default AppRoutes 
