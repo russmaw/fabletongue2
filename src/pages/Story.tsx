@@ -17,10 +17,9 @@ import {
   Select,
   FormControl,
   FormLabel,
-  Image,
   Divider
 } from '@chakra-ui/react'
-import { useParams, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { FaVolumeUp, FaBookmark, FaLightbulb, FaDiceD20, FaScroll } from 'react-icons/fa'
 import useStoryStore from '../stores/storyStore'
 
@@ -68,7 +67,6 @@ const FantasyButton = ({ children, ...props }: any) => (
 )
 
 const Story = () => {
-  const { id } = useParams()
   const location = useLocation()
   const toast = useToast()
   const isBedtimeMode = location.search.includes('mode=bedtime')

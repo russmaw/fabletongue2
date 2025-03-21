@@ -93,7 +93,6 @@ const useStoryStore = create<StoryState>((set, get) => ({
     set({ loading: true, error: null })
     try {
       const currentStory = get().story
-      const continuationPrompt = `Continue the story:\n${currentStory.content}`
       
       const continuation = await generateStory({
         theme: 'continuation',
