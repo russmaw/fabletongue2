@@ -1,18 +1,54 @@
 [build]
-  command = "npm install && npm run build"
+  command = "npm run build"
   publish = "dist"
   functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+  VITE_APP_ENV = "production"
+
+[[plugins]]
+  package = "@netlify/plugin-vite"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-[build.environment]
-  NODE_VERSION = "18.18.0"
-  NPM_VERSION = "9.6.7"
-  NPM_FLAGS = "--legacy-peer-deps --no-optional"
-  VITE_APP_ENV = "production"
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: https:;
+      font-src 'self' data:;
+      connect-src 'self' https://api.openai.com;
+      frame-ancestors 'none';
+      form-action 'self';
+      base-uri 'self';
+      object-src 'none';
+      media-src 'self';
+      worker-src 'self' blob:;
+      manifest-src 'self';
+      upgrade-insecure-requests;
+    """.replace(/\s+/g, ' ').trim()
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["@netlify/functions"]
+
+[dev]
+  command = "npm run dev"
+  port = 5173
+  targetPort = 5173
+  framework = "vite"
+  autoLaunch = true
 
 # Production context
 [context.production]
@@ -27,46 +63,4 @@
 # Branch Deploy context
 [context.branch-deploy]
   command = "npm install && npm run build"
-  environment = { NODE_ENV = "production", VITE_APP_ENV = "staging" }
-
-[dev]
-  command = "npm run dev"
-  targetPort = 5173
-  port = 8888
-  publish = "dist"
-  autoLaunch = true
-
-[functions]
-  node_bundler = "esbuild"
-
-[[headers]]
-  for = "/service-worker.js"
-  [headers.values]
-    Content-Type = "application/javascript"
-    Service-Worker-Allowed = "/"
-
-[[headers]]
-  for = "/*.js"
-  [headers.values]
-    Content-Type = "application/javascript"
-
-[[headers]]
-  for = "/*.svg"
-  [headers.values]
-    Content-Type = "image/svg+xml"
-
-# Handle single-page application routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'nonce-random123' 'strict-dynamic'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; report-uri /api/csp-report;"
-    X-Content-Type-Options = "nosniff"
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "geolocation=(), microphone=(), camera=()" 
+  environment = { NODE_ENV = "production", VITE_APP_ENV = "staging" } 
