@@ -1,16 +1,22 @@
 import React from 'react'
-import { Container, VStack, HStack, Text, Heading, Box, Badge, Button, useColorModeValue, SimpleGrid, Icon, Tooltip, Flex } from '@chakra-ui/react'
+import {
+  Container,
+  VStack,
+  HStack,
+  Text,
+  Heading,
+  Box,
+  Badge,
+  Button,
+  useColorModeValue,
+  SimpleGrid,
+  Tooltip,
+  Flex,
+  useToast
+} from '@chakra-ui/react'
 import { FaFire, FaStar, FaTrophy, FaRedo } from 'react-icons/fa'
 import useOnboardingStore from '../stores/onboardingStore'
 import FantasyFrame from '../components/fantasy/FantasyFrame'
-
-interface Achievement {
-  id: number
-  title: string
-  description: string
-  icon: React.ReactNode
-  unlockedAt?: string
-}
 
 interface RecentStory {
   id: number
@@ -24,12 +30,12 @@ interface UserData {
   xp: number
   nextLevelXp: number
   streak: number
-  achievements: Achievement[]
   recentStories: RecentStory[]
 }
 
 const Profile = () => {
   const { achievements, resetTutorial } = useOnboardingStore()
+  const toast = useToast()
 
   // Mock user data - will be replaced with actual data from backend
   const userData: UserData = {
@@ -38,16 +44,42 @@ const Profile = () => {
     xp: 2450,
     nextLevelXp: 3000,
     streak: 15,
-    achievements: [
-      { id: 1, title: 'First Story', description: 'Completed your first story', icon: <FaStar /> },
-      { id: 2, title: 'Streak Master', description: '7 days streak achieved', icon: <FaFire /> },
-      { id: 3, title: 'Vocabulary Champion', description: 'Learned 100 words', icon: <FaTrophy /> },
-    ],
     recentStories: [
       { id: 1, title: 'The Enchanted Forest', progress: 100 },
       { id: 2, title: 'Mystery of the Ancient Ruins', progress: 75 },
       { id: 3, title: 'Tales of the Starlight Kingdom', progress: 30 },
     ],
+  }
+
+  const handleReset = () => {
+    try {
+      resetTutorial()
+      toast({
+        title: 'Tutorial Reset',
+        description: 'Your tutorial progress has been reset.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      console.error('Error resetting tutorial:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to reset tutorial. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const renderAchievementIcon = (iconString: string) => {
+    const iconMap: { [key: string]: React.ReactNode } = {
+      '🌟': <FaStar />,
+      '🔥': <FaFire />,
+      '🏆': <FaTrophy />
+    }
+    return iconMap[iconString] || iconString
   }
 
   return (
@@ -60,7 +92,7 @@ const Profile = () => {
               leftIcon={<FaRedo />}
               variant="ghost"
               colorScheme="gray"
-              onClick={resetTutorial}
+              onClick={handleReset}
               size="sm"
             >
               Reset Tutorial
@@ -69,10 +101,10 @@ const Profile = () => {
         </Flex>
 
         {/* Profile Header */}
-        <Box bg="white" p={6} borderRadius="lg" boxShadow="md" mb={8}>
+        <Box bg={useColorModeValue('white', 'gray.800')} p={6} borderRadius="lg" boxShadow="md" mb={8}>
           <VStack align="start">
             <Heading size="lg">{userData.name}</Heading>
-            <Text color="gray.600">Level {userData.level} Explorer</Text>
+            <Text color={useColorModeValue('gray.600', 'gray.400')}>Level {userData.level} Explorer</Text>
             <HStack>
               <Badge colorScheme="orange">
                 <HStack gap={1}>
@@ -87,7 +119,7 @@ const Profile = () => {
             <Box
               w="full"
               h="2"
-              bg="gray.100"
+              bg={useColorModeValue('gray.100', 'gray.700')}
               borderRadius="full"
               overflow="hidden"
             >
@@ -97,7 +129,7 @@ const Profile = () => {
                 bg="brand.500"
               />
             </Box>
-            <Text fontSize="sm" color="gray.600" mt={1}>
+            <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.400')} mt={1}>
               {userData.xp} / {userData.nextLevelXp} XP
             </Text>
           </Box>
@@ -110,7 +142,7 @@ const Profile = () => {
             </Heading>
             
             <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} width="full">
-              {userData.achievements.map((achievement) => (
+              {achievements.map((achievement) => (
                 <Box
                   key={achievement.id}
                   p={4}
@@ -122,7 +154,9 @@ const Profile = () => {
                 >
                   <VStack align="start" spacing={2}>
                     <Flex justify="space-between" width="full" align="center">
-                      <Text fontSize="2xl">{achievement.icon}</Text>
+                      <Box fontSize="2xl">
+                        {renderAchievementIcon(achievement.icon)}
+                      </Box>
                       {achievement.unlockedAt ? (
                         <Badge colorScheme="green" variant="solid" borderRadius="full" px={2}>
                           Unlocked
@@ -134,9 +168,11 @@ const Profile = () => {
                       )}
                     </Flex>
                     <Text fontWeight="bold">{achievement.title}</Text>
-                    <Text fontSize="sm" color="gray.500">{achievement.description}</Text>
+                    <Text fontSize="sm" color={useColorModeValue('gray.500', 'gray.400')}>
+                      {achievement.description}
+                    </Text>
                     {achievement.unlockedAt && (
-                      <Text fontSize="xs" color="gray.500">
+                      <Text fontSize="xs" color={useColorModeValue('gray.500', 'gray.400')}>
                         Unlocked on {new Date(achievement.unlockedAt).toLocaleDateString()}
                       </Text>
                     )}
@@ -148,7 +184,7 @@ const Profile = () => {
         </FantasyFrame>
 
         {/* Recent Stories */}
-        <Box bg="white" p={6} borderRadius="lg" boxShadow="md">
+        <Box bg={useColorModeValue('white', 'gray.800')} p={6} borderRadius="lg" boxShadow="md">
           <Heading size="md" mb={4}>
             Recent Stories
           </Heading>
@@ -159,8 +195,8 @@ const Profile = () => {
                 p={4}
                 borderRadius="md"
                 border="1px"
-                borderColor="gray.200"
-                _hover={{ bg: 'gray.50' }}
+                borderColor={useColorModeValue('gray.200', 'gray.700')}
+                _hover={{ bg: useColorModeValue('gray.50', 'gray.700') }}
               >
                 <Text fontWeight="bold" mb={2}>
                   {story.title}
@@ -168,7 +204,7 @@ const Profile = () => {
                 <Box
                   w="full"
                   h="2"
-                  bg="gray.100"
+                  bg={useColorModeValue('gray.100', 'gray.700')}
                   borderRadius="full"
                   overflow="hidden"
                 >
@@ -178,7 +214,7 @@ const Profile = () => {
                     bg="brand.500"
                   />
                 </Box>
-                <Text fontSize="sm" color="gray.600" mt={1}>
+                <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.400')} mt={1}>
                   {story.progress}% Complete
                 </Text>
               </Box>
