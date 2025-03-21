@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useCallback } from 'react'
 import {
   Modal,
   ModalOverlay,
@@ -9,7 +9,8 @@ import {
   Text,
   VStack,
   Box,
-  useColorModeValue
+  useColorModeValue,
+  Fade
 } from '@chakra-ui/react'
 import { keyframes } from '@emotion/react'
 
@@ -34,43 +35,66 @@ const AchievementPopup: React.FC<AchievementPopupProps> = ({
   isOpen,
   onClose
 }) => {
+  const handleClose = useCallback(() => {
+    // Ensure we clean up properly
+    setTimeout(onClose, 300) // Allow animation to complete
+  }, [onClose])
+
   useEffect(() => {
+    let timer: NodeJS.Timeout
     if (isOpen) {
-      const timer = setTimeout(() => {
-        onClose()
+      timer = setTimeout(() => {
+        handleClose()
       }, 5000)
-      return () => clearTimeout(timer)
     }
-  }, [isOpen, onClose])
+    return () => {
+      if (timer) {
+        clearTimeout(timer)
+      }
+    }
+  }, [isOpen, handleClose])
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={handleClose} 
+      isCentered
+      motionPreset="slideInBottom"
+    >
       <ModalOverlay />
-      <ModalContent
-        bg={useColorModeValue('white', 'gray.800')}
-        borderRadius="xl"
-        p={4}
-        maxW="sm"
-        animation={`${glowAnimation} 2s infinite`}
-      >
-        <ModalCloseButton />
-        <ModalHeader textAlign="center" fontSize="2xl" pb={0}>
-          Achievement Unlocked!
-        </ModalHeader>
-        <ModalBody>
-          <VStack spacing={4} align="center" py={4}>
-            <Box fontSize="4xl">{icon}</Box>
-            <Text fontWeight="bold" fontSize="xl">
-              {title}
-            </Text>
-            <Text color={useColorModeValue('gray.600', 'gray.400')} textAlign="center">
-              {description}
-            </Text>
-          </VStack>
-        </ModalBody>
-      </ModalContent>
+      <Fade in={isOpen}>
+        <ModalContent
+          bg={useColorModeValue('white', 'gray.800')}
+          borderRadius="xl"
+          p={4}
+          maxW="sm"
+          animation={`${glowAnimation} 2s infinite`}
+          boxShadow="xl"
+        >
+          <ModalCloseButton />
+          <ModalHeader textAlign="center" fontSize="2xl" pb={0}>
+            Achievement Unlocked!
+          </ModalHeader>
+          <ModalBody>
+            <VStack spacing={4} align="center" py={4}>
+              <Box 
+                fontSize="4xl" 
+                animation={`${glowAnimation} 1s infinite`}
+              >
+                {icon}
+              </Box>
+              <Text fontWeight="bold" fontSize="xl">
+                {title}
+              </Text>
+              <Text color={useColorModeValue('gray.600', 'gray.400')} textAlign="center">
+                {description}
+              </Text>
+            </VStack>
+          </ModalBody>
+        </ModalContent>
+      </Fade>
     </Modal>
   )
 }
 
-export default AchievementPopup 
+export default React.memo(AchievementPopup) 

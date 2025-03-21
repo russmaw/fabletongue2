@@ -9,33 +9,22 @@ type Config = {
   onUpdate?: (registration: ServiceWorkerRegistration) => void
 }
 
-export function register() {
+export function register(config?: Config) {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      const swUrl = `${window.location.origin}/service-worker.js`
+    const publicUrl = new URL(process.env.PUBLIC_URL || '', window.location.href)
+    
+    if (publicUrl.origin !== window.location.origin) {
+      return
+    }
 
-      navigator.serviceWorker
-        .register(swUrl)
-        .then(registration => {
-          registration.onupdatefound = () => {
-            const installingWorker = registration.installing
-            if (installingWorker == null) {
-              return
-            }
-            installingWorker.onstatechange = () => {
-              if (installingWorker.state === 'installed') {
-                if (navigator.serviceWorker.controller) {
-                  console.log('New content is available; please refresh.')
-                } else {
-                  console.log('Content is cached for offline use.')
-                }
-              }
-            }
-          }
-        })
-        .catch(error => {
-          console.error('Error during service worker registration:', error)
-        })
+    window.addEventListener('load', () => {
+      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`
+
+      if (isLocalhost) {
+        checkValidServiceWorker(swUrl, config)
+      } else {
+        registerValidSW(swUrl, config)
+      }
     })
   }
 }
@@ -98,11 +87,11 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
 export function unregister() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready
-      .then(registration => {
+      .then((registration) => {
         registration.unregister()
       })
-      .catch(error => {
-        console.error(error.message)
+      .catch((error) => {
+        console.error('Error during service worker unregistration:', error)
       })
   }
 } 
