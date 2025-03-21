@@ -18,7 +18,7 @@
     "allowJs": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "types": ["vite/client", "node"],
+    "types": ["vite/client", "node", "react/jsx-runtime"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
