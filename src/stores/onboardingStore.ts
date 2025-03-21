@@ -17,6 +17,7 @@ interface OnboardingState {
   setCurrentStep: (step: number) => void
   setSelectedLanguage: (language: string) => void
   unlockAchievement: (id: string) => void
+  resetTutorial: () => void
 }
 
 const useOnboardingStore = create<OnboardingState>()(
@@ -67,7 +68,35 @@ const useOnboardingStore = create<OnboardingState>()(
             ? { ...achievement, unlockedAt: new Date().toISOString() }
             : achievement
         )
-      }))
+      })),
+      resetTutorial: () => set({
+        hasCompletedTutorial: false,
+        currentStep: 0,
+        selectedLanguage: null,
+        achievements: [
+          {
+            id: 'first_story',
+            title: 'Apprentice Storyteller',
+            description: 'Complete your first language learning story',
+            icon: '📚',
+            unlockedAt: null
+          },
+          {
+            id: 'language_selected',
+            title: 'Path Chosen',
+            description: 'Select your first language to master',
+            icon: '🗣️',
+            unlockedAt: null
+          },
+          {
+            id: 'tutorial_complete',
+            title: 'Ready for Adventure',
+            description: 'Complete the tutorial and begin your journey',
+            icon: '🎯',
+            unlockedAt: null
+          }
+        ]
+      })
     }),
     {
       name: 'fabletongue-onboarding'

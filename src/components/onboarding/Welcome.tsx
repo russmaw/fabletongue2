@@ -8,9 +8,12 @@ import {
   Select,
   useColorModeValue,
   Fade,
-  useDisclosure
+  useDisclosure,
+  IconButton,
+  Tooltip,
+  HStack
 } from '@chakra-ui/react'
-import { FaArrowRight } from 'react-icons/fa'
+import { FaArrowRight, FaRedo } from 'react-icons/fa'
 import useOnboardingStore from '../../stores/onboardingStore'
 import useStoryStore from '../../stores/storyStore'
 import FantasyFrame from '../fantasy/FantasyFrame'
@@ -43,7 +46,8 @@ const Welcome: React.FC = () => {
     setSelectedLanguage,
     unlockAchievement,
     setHasCompletedTutorial,
-    achievements
+    achievements,
+    resetTutorial
   } = useOnboardingStore()
   
   const { setLanguage } = useStoryStore()
@@ -79,6 +83,19 @@ const Welcome: React.FC = () => {
       bg={useColorModeValue('gray.50', 'gray.900')}
     >
       <VStack spacing={8} maxW="container.md" mx="auto">
+        <HStack w="full" justify="flex-end">
+          <Tooltip label="Reset Tutorial" placement="left">
+            <IconButton
+              aria-label="Reset Tutorial"
+              icon={<FaRedo />}
+              variant="ghost"
+              colorScheme="gray"
+              onClick={resetTutorial}
+              size="sm"
+            />
+          </Tooltip>
+        </HStack>
+
         <FantasyFrame variant="ornate">
           <VStack spacing={6} p={6} align="stretch">
             <Heading
