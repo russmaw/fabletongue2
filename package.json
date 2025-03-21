@@ -11,8 +11,11 @@
     "validate-env": "node scripts/validate-env.js",
     "prebuild": "npm run validate-env",
     "build": "tsc && vite build",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "preview": "vite preview",
+    "security-check": "npm audit && eslint . --ext .ts,.tsx --plugin security",
+    "predeploy": "npm run security-check"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
@@ -39,12 +42,14 @@
     "react-router-dom": "^6.22.3",
     "typescript": "^5.2.2",
     "vite": "^5.1.4",
-    "zustand": "^4.5.2",
-    "vite-plugin-pwa": "^0.21.1"
+    "vite-plugin-pwa": "^0.21.1",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@netlify/functions": "3.0.4",
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5"
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "eslint-plugin-security": "3.0.1"
   }
 }

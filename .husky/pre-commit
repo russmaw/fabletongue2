@@ -1,0 +1,30 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run ESLint
+npm run lint
+
+# Run security audit
+npm audit
+
+# Check for CSP violations
+echo "Checking for CSP violations..."
+if grep -r "eval(" src/; then
+  echo "Error: Found eval() usage. Please use safer alternatives."
+  exit 1
+fi
+
+if grep -r "new Function(" src/; then
+  echo "Error: Found new Function() usage. Please use safer alternatives."
+  exit 1
+fi
+
+if grep -r "setTimeout(" src/ | grep -v "setTimeout(() =>"; then
+  echo "Error: Found setTimeout with string argument. Please use function references."
+  exit 1
+fi
+
+if grep -r "setInterval(" src/ | grep -v "setInterval(() =>"; then
+  echo "Error: Found setInterval with string argument. Please use function references."
+  exit 1
+fi 
