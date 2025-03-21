@@ -1,6 +1,7 @@
 import React from 'react'
-import { Container, VStack, Text, Button, Heading, Box } from '@chakra-ui/react'
-import { useParams } from 'react-router-dom'
+import { Container, VStack, Text, Button, Heading, Box, useColorModeValue, Card, CardBody, Skeleton, Flex, IconButton, Tooltip } from '@chakra-ui/react'
+import { useParams, useLocation } from 'react-router-dom'
+import { FaVolumeUp, FaBookmark, FaLightbulb } from 'react-icons/fa'
 
 interface VocabularyItem {
   word: string
@@ -24,6 +25,13 @@ const Story = () => {
     progress: 0,
     vocabulary: [],
   })
+
+  const location = useLocation()
+  const isBedtimeMode = location.search.includes('mode=bedtime')
+  
+  const bgColor = useColorModeValue('white', 'gray.700')
+  const textColor = useColorModeValue('gray.800', 'gray.100')
+  const borderColor = useColorModeValue('gray.200', 'gray.600')
 
   // Placeholder for story loading logic
   React.useEffect(() => {
@@ -52,51 +60,91 @@ const Story = () => {
   }, [id])
 
   return (
-    <Container maxW="container.lg" py={8}>
-      {loading ? (
-        <Text>Loading...</Text>
-      ) : (
-        <VStack gap={6} align="stretch">
-          <Heading size="xl" textAlign="center">
-            {story.title}
-          </Heading>
+    <Box py={{ base: 4, md: 8 }}>
+      <Container maxW="container.lg">
+        <VStack spacing={{ base: 4, md: 6 }} align="stretch">
+          <Card bg={bgColor} borderColor={borderColor} borderWidth="1px">
+            <CardBody>
+              <Flex justify="space-between" align="center" mb={4}>
+                <Heading size={{ base: 'md', md: 'lg' }}>
+                  {isBedtimeMode ? 'Bedtime Story' : 'Your Adventure'}
+                </Heading>
+                <Flex gap={2}>
+                  <Tooltip label="Read aloud">
+                    <IconButton
+                      aria-label="Read aloud"
+                      icon={<FaVolumeUp />}
+                      variant="ghost"
+                      size={{ base: 'sm', md: 'md' }}
+                    />
+                  </Tooltip>
+                  <Tooltip label="Save for later">
+                    <IconButton
+                      aria-label="Save for later"
+                      icon={<FaBookmark />}
+                      variant="ghost"
+                      size={{ base: 'sm', md: 'md' }}
+                    />
+                  </Tooltip>
+                  <Tooltip label="Show vocabulary">
+                    <IconButton
+                      aria-label="Show vocabulary"
+                      icon={<FaLightbulb />}
+                      variant="ghost"
+                      size={{ base: 'sm', md: 'md' }}
+                    />
+                  </Tooltip>
+                </Flex>
+              </Flex>
 
-          <Box bg="white" p={6} borderRadius="lg" boxShadow="md">
-            <Text fontSize="lg" lineHeight="tall">
-              {story.content}
-            </Text>
-          </Box>
+              {loading ? (
+                <VStack spacing={4} align="stretch">
+                  <Skeleton height="20px" />
+                  <Skeleton height="20px" />
+                  <Skeleton height="20px" />
+                </VStack>
+              ) : (
+                <Text
+                  fontSize={{ base: 'md', md: 'lg' }}
+                  lineHeight="tall"
+                  color={textColor}
+                  whiteSpace="pre-wrap"
+                >
+                  {story.content}
+                </Text>
+              )}
+            </CardBody>
+          </Card>
 
-          <Box bg="white" p={6} borderRadius="lg" boxShadow="md">
-            <Heading size="md" mb={4}>
-              Vocabulary
-            </Heading>
-            <VStack gap={3} align="stretch">
-              {story.vocabulary.map((item, index) => (
-                <Box key={index} p={3} bg="gray.50" borderRadius="md">
-                  <Text fontWeight="bold">{item.word}</Text>
-                  <Text color="gray.600">{item.translation}</Text>
-                  <Text fontSize="sm" fontStyle="italic">
-                    Context: {item.context}
-                  </Text>
-                </Box>
-              ))}
-            </VStack>
-          </Box>
-
-          <Button
-            colorScheme="brand"
-            size="lg"
-            onClick={() => {
-              // TODO: Implement continue story logic
-              console.log('Continue story')
-            }}
-          >
-            Continue Story
-          </Button>
+          <Card bg={bgColor} borderColor={borderColor} borderWidth="1px">
+            <CardBody>
+              <VStack spacing={4}>
+                <Heading size={{ base: 'sm', md: 'md' }}>What happens next?</Heading>
+                <Button
+                  colorScheme="brand"
+                  size={{ base: 'md', md: 'lg' }}
+                  w="full"
+                  isLoading={loading}
+                >
+                  Continue the adventure
+                </Button>
+                {!isBedtimeMode && (
+                  <Button
+                    colorScheme="accent"
+                    size={{ base: 'md', md: 'lg' }}
+                    w="full"
+                    variant="outline"
+                    isLoading={loading}
+                  >
+                    Choose a different path
+                  </Button>
+                )}
+              </VStack>
+            </CardBody>
+          </Card>
         </VStack>
-      )}
-    </Container>
+      </Container>
+    </Box>
   )
 }
 

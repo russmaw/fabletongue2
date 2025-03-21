@@ -1,9 +1,26 @@
-import { extendTheme } from '@chakra-ui/react'
+import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
+
+const config: ThemeConfig = {
+  initialColorMode: 'light',
+  useSystemColorMode: false,
+}
 
 const theme = extendTheme({
-  config: {
-    initialColorMode: 'light',
-    useSystemColorMode: false,
+  config,
+  breakpoints: {
+    sm: '320px',
+    md: '768px',
+    lg: '960px',
+    xl: '1200px',
+    '2xl': '1536px',
+  },
+  sizes: {
+    container: {
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+    },
   },
   colors: {
     brand: {
@@ -50,12 +67,29 @@ const theme = extendTheme({
         },
       },
     },
+    Container: {
+      baseStyle: {
+        maxW: { base: '95%', md: 'container.md', lg: 'container.lg' },
+        px: { base: '4', md: '6', lg: '8' },
+      },
+    },
   },
   styles: {
     global: {
       body: {
         bg: 'gray.50',
         color: 'gray.800',
+      },
+      'h1': {
+        fontSize: { base: '2xl', md: '3xl', lg: '4xl' },
+        fontWeight: 'bold',
+      },
+      'h2': {
+        fontSize: { base: 'xl', md: '2xl', lg: '3xl' },
+        fontWeight: 'semibold',
+      },
+      'p': {
+        fontSize: { base: 'sm', md: 'md', lg: 'lg' },
       },
     },
   },

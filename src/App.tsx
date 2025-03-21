@@ -1,32 +1,29 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { ChakraProvider } from '@chakra-ui/react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import theme from './styles/theme'
-
-// Pages
-import Home from './pages/Home'
-import Story from './pages/Story'
-import Profile from './pages/Profile'
-import NotFound from './pages/NotFound'
-
-// Components
 import Navigation from './components/Navigation'
+import LoadingSpinner from './components/LoadingSpinner'
 
-function App() {
+// Lazy load pages
+const Home = React.lazy(() => import('./pages/Home'))
+const Story = React.lazy(() => import('./pages/Story'))
+const Profile = React.lazy(() => import('./pages/Profile'))
+const NotFound = React.lazy(() => import('./pages/NotFound'))
+
+const App = () => {
   return (
     <ChakraProvider theme={theme}>
       <Router>
-        <div style={{ minHeight: '100vh', backgroundColor: '#F7FAFC' }}>
-          <Navigation />
-          <main style={{ padding: '1rem' }}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/story/:id" element={<Story />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-        </div>
+        <Navigation />
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/story" element={<Story />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </Router>
     </ChakraProvider>
   )
