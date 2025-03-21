@@ -1,10 +1,10 @@
 import React, { Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import LoadingSpinner from './components/LoadingSpinner'
-import Welcome from './components/onboarding/Welcome'
 import useOnboardingStore from './stores/onboardingStore'
 
-// Lazy load pages
+// Lazy load all major components
+const Welcome = React.lazy(() => import('./components/onboarding/Welcome'))
 const Home = React.lazy(() => import('./pages/Home'))
 const Story = React.lazy(() => import('./pages/Story'))
 const Profile = React.lazy(() => import('./pages/Profile'))
@@ -25,52 +25,69 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   return <>{children}</>
 }
 
+// Wrap each route in its own Suspense boundary for better code splitting
+const SuspenseRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Suspense fallback={<LoadingSpinner />}>
+    {children}
+  </Suspense>
+)
+
 const AppRoutes = () => {
   return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <SuspenseRoute>
               <Home />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route 
-          path="/welcome" 
-          element={<Welcome />} 
-        />
-        
-        <Route
-          path="/story"
-          element={
-            <ProtectedRoute>
+            </SuspenseRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route 
+        path="/welcome" 
+        element={
+          <SuspenseRoute>
+            <Welcome />
+          </SuspenseRoute>
+        }
+      />
+      
+      <Route
+        path="/story"
+        element={
+          <ProtectedRoute>
+            <SuspenseRoute>
               <Story />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
+            </SuspenseRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <SuspenseRoute>
               <Profile />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="*"
-          element={
-            <ProtectedRoute>
+            </SuspenseRoute>
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="*"
+        element={
+          <ProtectedRoute>
+            <SuspenseRoute>
               <NotFound />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </Suspense>
+            </SuspenseRoute>
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
   )
 }
 
