@@ -1,17 +1,33 @@
 import { create } from 'zustand'
-import { generateStory, generateVocabularyExercise } from '../services/openai'
+
+interface StoryPrompt {
+  theme: string
+  genre: string
+  prompt?: string
+  language: string
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+}
+
+interface VocabularyItem {
+  word: string
+  translation: string
+  context: string
+}
+
+interface GeneratedStory {
+  content: string
+  vocabulary: VocabularyItem[]
+}
+
+interface Story {
+  title: string
+  content: string
+  progress: number
+  vocabulary: VocabularyItem[]
+}
 
 interface StoryState {
-  story: {
-    title: string
-    content: string
-    progress: number
-    vocabulary: Array<{
-      word: string
-      translation: string
-      context: string
-    }>
-  }
+  story: Story
   loading: boolean
   error: string | null
   selectedLanguage: string
@@ -20,6 +36,22 @@ interface StoryState {
   continueStory: () => Promise<void>
   setLanguage: (language: string) => void
   setDifficulty: (level: 'beginner' | 'intermediate' | 'advanced') => void
+}
+
+const generateStory = async (prompt: StoryPrompt): Promise<GeneratedStory> => {
+  const response = await fetch('/api/generate-story', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(prompt),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to generate story')
+  }
+
+  return response.json()
 }
 
 const useStoryStore = create<StoryState>((set, get) => ({
@@ -31,60 +63,32 @@ const useStoryStore = create<StoryState>((set, get) => ({
   },
   loading: false,
   error: null,
-  selectedLanguage: 'Spanish', // Default language
-  difficulty: 'beginner', // Default difficulty
+  selectedLanguage: 'en',
+  difficulty: 'beginner',
 
-  setLanguage: (language) => set({ selectedLanguage: language }),
-  setDifficulty: (level) => set({ difficulty: level }),
-
-  generateNewStory: async (theme, genre) => {
+  generateNewStory: async (theme: string, genre: string) => {
     set({ loading: true, error: null })
     try {
-      const storyContent = await generateStory({
+      const result = await generateStory({
         theme,
         genre,
-        targetLanguage: get().selectedLanguage,
+        language: get().selectedLanguage,
         difficulty: get().difficulty
       })
 
-      // Parse the story content to extract title, content, and vocabulary
-      const lines = storyContent.split('\n')
-      const title = lines[0]
-      const content = lines.slice(1).join('\n')
-
-      // Generate vocabulary exercises
-      const vocabularyContent = await generateVocabularyExercise(
-        content,
-        get().selectedLanguage,
-        get().difficulty
-      )
-
-      // Parse vocabulary content into structured format
-      const vocabulary = vocabularyContent.split('\n')
-        .filter(line => line.includes(':'))
-        .map(line => {
-          const [word, rest] = line.split(':')
-          const [translation, context] = rest.split(' - ')
-          return {
-            word: word.trim(),
-            translation: translation.trim(),
-            context: context?.trim() || ''
-          }
-        })
-
       set({
         story: {
-          title,
-          content,
+          title: theme,
+          content: result.content,
           progress: 0,
-          vocabulary
+          vocabulary: result.vocabulary
         },
         loading: false
       })
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : 'Failed to generate story',
-        loading: false
+        loading: false 
       })
     }
   },
@@ -93,51 +97,33 @@ const useStoryStore = create<StoryState>((set, get) => ({
     set({ loading: true, error: null })
     try {
       const currentStory = get().story
-      const continuationPrompt = `Continue the story:\n${currentStory.content}`
       
       const continuation = await generateStory({
         theme: 'continuation',
         genre: 'continuation',
-        targetLanguage: get().selectedLanguage,
+        prompt: `Continue the story:\n${currentStory.content}`,
+        language: get().selectedLanguage,
         difficulty: get().difficulty
       })
-
-      // Generate vocabulary for the continuation
-      const vocabularyContent = await generateVocabularyExercise(
-        continuation,
-        get().selectedLanguage,
-        get().difficulty
-      )
-
-      // Parse new vocabulary
-      const newVocabulary = vocabularyContent.split('\n')
-        .filter(line => line.includes(':'))
-        .map(line => {
-          const [word, rest] = line.split(':')
-          const [translation, context] = rest.split(' - ')
-          return {
-            word: word.trim(),
-            translation: translation.trim(),
-            context: context?.trim() || ''
-          }
-        })
 
       set({
         story: {
           ...currentStory,
-          content: `${currentStory.content}\n\n${continuation}`,
-          progress: currentStory.progress + 1,
-          vocabulary: [...currentStory.vocabulary, ...newVocabulary]
+          content: `${currentStory.content}\n\n${continuation.content}`,
+          vocabulary: [...currentStory.vocabulary, ...continuation.vocabulary]
         },
         loading: false
       })
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : 'Failed to continue story',
-        loading: false
+        loading: false 
       })
     }
-  }
+  },
+
+  setLanguage: (language: string) => set({ selectedLanguage: language }),
+  setDifficulty: (level: 'beginner' | 'intermediate' | 'advanced') => set({ difficulty: level })
 }))
 
 export default useStoryStore 
