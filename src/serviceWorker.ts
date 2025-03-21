@@ -11,9 +11,8 @@ type Config = {
 
 export function register(config?: Config) {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-    // Use window.location.origin as base URL if PUBLIC_URL is not set
-    const baseUrl = process.env.PUBLIC_URL || window.location.origin
-    const publicUrl = new URL(baseUrl)
+    // Use window.location.origin as base URL
+    const publicUrl = new URL(window.location.origin)
     
     if (publicUrl.origin !== window.location.origin) {
       console.error('Service worker registration failed: Mismatch between PUBLIC_URL and window.location.origin')
@@ -21,7 +20,7 @@ export function register(config?: Config) {
     }
 
     window.addEventListener('load', () => {
-      // Ensure we use the correct base path for the service worker
+      // Always use the root path for the service worker
       const swUrl = `${window.location.origin}/service-worker.js`
 
       if (isLocalhost) {

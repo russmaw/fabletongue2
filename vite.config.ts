@@ -14,6 +14,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       manifest: false, // We're using our own manifest.json
       injectRegister: false, // We're using our own registration
+      injectManifest: {
+        swSrc: 'public/service-worker.js',
+        swDest: 'dist/service-worker.js',
+        injectionPoint: undefined
+      }
     })
   ],
   resolve: {
