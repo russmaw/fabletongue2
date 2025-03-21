@@ -1,5 +1,4 @@
-import React from 'react'
-import { Center, Spinner, VStack, Text } from '@chakra-ui/react'
+import { Spinner, Center, VStack, Text } from '@chakra-ui/react'
 
 const LoadingSpinner = () => {
   return (

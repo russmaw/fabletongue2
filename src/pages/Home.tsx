@@ -1,4 +1,3 @@
-import React from 'react'
 import { Box, Container, Heading, Text, SimpleGrid, Card, CardBody, CardHeader, Button, VStack, useColorModeValue } from '@chakra-ui/react'
 import { FaBook, FaMoon } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
