@@ -43,12 +43,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle POST requests - don't cache them
-  if (event.request.method === 'POST') {
+  // Handle non-GET requests (HEAD, POST, etc.)
+  if (event.request.method !== 'GET') {
     event.respondWith(
       fetch(event.request)
         .catch((error) => {
-          console.error('Error handling POST request:', error);
+          console.error(`Error handling ${event.request.method} request:`, error);
           return new Response('Network error', { status: 503 });
         })
     );
