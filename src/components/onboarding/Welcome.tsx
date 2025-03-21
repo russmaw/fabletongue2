@@ -11,34 +11,39 @@ import {
   useDisclosure,
   IconButton,
   Tooltip,
-  HStack
+  HStack,
+  useToast
 } from '@chakra-ui/react'
 import { FaArrowRight, FaRedo } from 'react-icons/fa'
+import { useNavigate } from 'react-router-dom'
 import useOnboardingStore from '../../stores/onboardingStore'
 import useStoryStore from '../../stores/storyStore'
 import FantasyFrame from '../fantasy/FantasyFrame'
 import ScrollContainer from '../fantasy/ScrollContainer'
 import AchievementPopup from '../achievements/AchievementPopup'
+import type { Achievement } from '../../stores/onboardingStore'
 
 const tutorialSteps = [
   {
     title: 'Welcome, Brave Scholar!',
-    description: 'Embark on a magical journey of language learning through enchanted tales and ancient wisdom.',
-    action: 'Begin Your Adventure'
+    description: 'Embark on a magical journey of language learning through enchanted tales and mystical stories.',
+    action: 'Begin Your Journey'
   },
   {
     title: 'Choose Your Path',
-    description: 'Select the language you wish to master. Fear not, you can always explore other tongues later in your journey.',
+    description: 'Select the language you wish to master. Each language opens a new realm of possibilities.',
     action: 'Choose Language'
   },
   {
     title: 'Your First Tale',
-    description: 'Now, let us begin your first story. You can type your own prompts or choose from our magical suggestions.',
-    action: 'Start Your Tale'
+    description: 'You\'re ready to begin your first story. Adventure awaits!',
+    action: 'Start Reading'
   }
 ]
 
 const Welcome: React.FC = () => {
+  const navigate = useNavigate()
+  const toast = useToast()
   const {
     currentStep,
     setCurrentStep,
@@ -52,27 +57,69 @@ const Welcome: React.FC = () => {
   
   const { setLanguage } = useStoryStore()
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [currentAchievement, setCurrentAchievement] = React.useState(achievements[0])
+  const [currentAchievement, setCurrentAchievement] = React.useState<Achievement | null>(null)
 
   const handleNext = () => {
-    if (currentStep === 1 && selectedLanguage) {
-      // Set the language in the story store
-      setLanguage(selectedLanguage)
-      // Unlock achievement
-      unlockAchievement('language_selected')
-      setCurrentAchievement(achievements.find(a => a.id === 'language_selected')!)
-      onOpen()
+    try {
+      if (currentStep === 1 && selectedLanguage) {
+        setLanguage(selectedLanguage)
+        unlockAchievement('language_selected')
+        const achievement = achievements.find(a => a.id === 'language_selected')
+        if (achievement) {
+          setCurrentAchievement(achievement)
+          onOpen()
+        }
+      }
+      
+      if (currentStep === tutorialSteps.length - 1) {
+        setHasCompletedTutorial(true)
+        unlockAchievement('tutorial_complete')
+        const achievement = achievements.find(a => a.id === 'tutorial_complete')
+        if (achievement) {
+          setCurrentAchievement(achievement)
+          onOpen()
+        }
+        setTimeout(() => {
+          navigate('/story')
+        }, 1500)
+        return
+      }
+      
+      setCurrentStep(currentStep + 1)
+    } catch (error) {
+      console.error('Error in handleNext:', error)
+      toast({
+        title: 'Error',
+        description: 'Something went wrong. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
     }
-    
-    if (currentStep === tutorialSteps.length - 1) {
-      // Complete tutorial
-      setHasCompletedTutorial(true)
-      unlockAchievement('tutorial_complete')
-      setCurrentAchievement(achievements.find(a => a.id === 'tutorial_complete')!)
-      onOpen()
+  }
+
+  const handleReset = () => {
+    try {
+      resetTutorial()
+      setCurrentStep(0)
+      setCurrentAchievement(null)
+      toast({
+        title: 'Tutorial Reset',
+        description: 'Your progress has been reset.',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      console.error('Error in handleReset:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to reset tutorial. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
     }
-    
-    setCurrentStep(currentStep + 1)
   }
 
   return (
@@ -90,7 +137,7 @@ const Welcome: React.FC = () => {
               icon={<FaRedo />}
               variant="ghost"
               colorScheme="gray"
-              onClick={resetTutorial}
+              onClick={handleReset}
               size="sm"
             />
           </Tooltip>
@@ -104,12 +151,12 @@ const Welcome: React.FC = () => {
               fontFamily="heading"
               color={useColorModeValue('fantasy.800', 'fantasy.200')}
             >
-              {tutorialSteps[currentStep].title}
+              {tutorialSteps[currentStep]?.title || 'Welcome'}
             </Heading>
 
             <ScrollContainer variant="pristine">
               <Text variant="scroll" p={4} textAlign="center">
-                {tutorialSteps[currentStep].description}
+                {tutorialSteps[currentStep]?.description || 'Loading...'}
               </Text>
             </ScrollContainer>
 
@@ -144,19 +191,21 @@ const Welcome: React.FC = () => {
               onClick={handleNext}
               isDisabled={currentStep === 1 && !selectedLanguage}
             >
-              {tutorialSteps[currentStep].action}
+              {tutorialSteps[currentStep]?.action || 'Continue'}
             </Button>
           </VStack>
         </FantasyFrame>
       </VStack>
 
-      <AchievementPopup
-        title={currentAchievement.title}
-        description={currentAchievement.description}
-        icon={currentAchievement.icon}
-        isOpen={isOpen}
-        onClose={onClose}
-      />
+      {currentAchievement && (
+        <AchievementPopup
+          title={currentAchievement.title}
+          description={currentAchievement.description}
+          icon={currentAchievement.icon}
+          isOpen={isOpen}
+          onClose={onClose}
+        />
+      )}
     </Box>
   )
 }

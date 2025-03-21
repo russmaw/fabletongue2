@@ -1,105 +1,76 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+export interface Achievement {
+  id: string
+  title: string
+  description: string
+  icon: string
+  unlockedAt: string | null
+}
+
 interface OnboardingState {
-  hasCompletedTutorial: boolean
   currentStep: number
+  hasCompletedTutorial: boolean
   selectedLanguage: string | null
-  achievements: {
-    id: string
-    title: string
-    description: string
-    icon: string
-    unlockedAt: string | null
-  }[]
-  // Actions
-  setHasCompletedTutorial: (completed: boolean) => void
+  achievements: Achievement[]
   setCurrentStep: (step: number) => void
+  setHasCompletedTutorial: (completed: boolean) => void
   setSelectedLanguage: (language: string) => void
   unlockAchievement: (id: string) => void
   resetTutorial: () => void
 }
 
+const initialAchievements: Achievement[] = [
+  {
+    id: 'tutorial_started',
+    title: 'First Steps',
+    description: 'Begin your language learning journey',
+    icon: '🌟',
+    unlockedAt: null
+  },
+  {
+    id: 'language_selected',
+    title: 'Language Chosen',
+    description: 'Selected your target language',
+    icon: '🎯',
+    unlockedAt: null
+  },
+  {
+    id: 'tutorial_complete',
+    title: 'Ready to Learn',
+    description: 'Completed the tutorial',
+    icon: '🏆',
+    unlockedAt: null
+  }
+]
+
 const useOnboardingStore = create<OnboardingState>()(
   persist(
     (set) => ({
-      hasCompletedTutorial: false,
       currentStep: 0,
+      hasCompletedTutorial: false,
       selectedLanguage: null,
-      achievements: [
-        {
-          id: 'first_story',
-          title: 'Apprentice Storyteller',
-          description: 'Complete your first language learning story',
-          icon: '📚',
-          unlockedAt: null
-        },
-        {
-          id: 'language_selected',
-          title: 'Path Chosen',
-          description: 'Select your first language to master',
-          icon: '🗣️',
-          unlockedAt: null
-        },
-        {
-          id: 'tutorial_complete',
-          title: 'Ready for Adventure',
-          description: 'Complete the tutorial and begin your journey',
-          icon: '🎯',
-          unlockedAt: null
-        }
-      ],
-      setHasCompletedTutorial: (completed) => set({ hasCompletedTutorial: completed }),
+      achievements: initialAchievements,
       setCurrentStep: (step) => set({ currentStep: step }),
-      setSelectedLanguage: (language) => {
-        set({ selectedLanguage: language })
-        // Unlock the language selection achievement
-        set((state) => ({
-          achievements: state.achievements.map(achievement => 
-            achievement.id === 'language_selected'
-              ? { ...achievement, unlockedAt: new Date().toISOString() }
-              : achievement
-          )
-        }))
-      },
+      setHasCompletedTutorial: (completed) => set({ hasCompletedTutorial: completed }),
+      setSelectedLanguage: (language) => set({ selectedLanguage: language }),
       unlockAchievement: (id) => set((state) => ({
         achievements: state.achievements.map(achievement =>
-          achievement.id === id && !achievement.unlockedAt
+          achievement.id === id
             ? { ...achievement, unlockedAt: new Date().toISOString() }
             : achievement
         )
       })),
       resetTutorial: () => set({
-        hasCompletedTutorial: false,
         currentStep: 0,
+        hasCompletedTutorial: false,
         selectedLanguage: null,
-        achievements: [
-          {
-            id: 'first_story',
-            title: 'Apprentice Storyteller',
-            description: 'Complete your first language learning story',
-            icon: '📚',
-            unlockedAt: null
-          },
-          {
-            id: 'language_selected',
-            title: 'Path Chosen',
-            description: 'Select your first language to master',
-            icon: '🗣️',
-            unlockedAt: null
-          },
-          {
-            id: 'tutorial_complete',
-            title: 'Ready for Adventure',
-            description: 'Complete the tutorial and begin your journey',
-            icon: '🎯',
-            unlockedAt: null
-          }
-        ]
+        achievements: initialAchievements
       })
     }),
     {
-      name: 'fabletongue-onboarding'
+      name: 'onboarding-storage'
     }
   )
 )

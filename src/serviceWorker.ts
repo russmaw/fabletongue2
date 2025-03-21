@@ -9,23 +9,33 @@ type Config = {
   onUpdate?: (registration: ServiceWorkerRegistration) => void
 }
 
-export function register(config?: Config) {
+export function register() {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-    const baseUrl = process.env.PUBLIC_URL || window.location.origin
-    const publicUrl = new URL(baseUrl, window.location.href)
-
-    if (publicUrl.origin !== window.location.origin) {
-      return
-    }
-
     window.addEventListener('load', () => {
-      const swUrl = `${publicUrl.origin}/service-worker.js`
+      const swUrl = `${window.location.origin}/service-worker.js`
 
-      if (isLocalhost) {
-        checkValidServiceWorker(swUrl, config)
-      } else {
-        registerValidSW(swUrl, config)
-      }
+      navigator.serviceWorker
+        .register(swUrl)
+        .then(registration => {
+          registration.onupdatefound = () => {
+            const installingWorker = registration.installing
+            if (installingWorker == null) {
+              return
+            }
+            installingWorker.onstatechange = () => {
+              if (installingWorker.state === 'installed') {
+                if (navigator.serviceWorker.controller) {
+                  console.log('New content is available; please refresh.')
+                } else {
+                  console.log('Content is cached for offline use.')
+                }
+              }
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error during service worker registration:', error)
+        })
     })
   }
 }
@@ -88,10 +98,10 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
 export function unregister() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready
-      .then((registration) => {
+      .then(registration => {
         registration.unregister()
       })
-      .catch((error) => {
+      .catch(error => {
         console.error(error.message)
       })
   }
