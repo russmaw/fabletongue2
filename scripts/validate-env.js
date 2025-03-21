@@ -1,4 +1,21 @@
 #!/usr/bin/env node
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+import { existsSync } from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rootDir = resolve(__dirname, '..');
+
+// Load environment variables from .env files
+const envFiles = ['.env.local', '.env'];
+for (const file of envFiles) {
+  const envPath = resolve(rootDir, file);
+  if (existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+  }
+}
 
 const requiredEnvVars = [
   'VITE_OPENAI_API_KEY',
