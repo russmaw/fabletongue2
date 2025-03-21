@@ -1,29 +1,23 @@
-import React, { Suspense } from 'react'
+import React from 'react'
 import { ChakraProvider } from '@chakra-ui/react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import theme from './styles/theme'
-import Navigation from './components/Navigation'
-import LoadingSpinner from './components/LoadingSpinner'
+import { BrowserRouter as Router } from 'react-router-dom'
+import fantasyTheme from './theme/fantasyTheme'
+import AppRoutes from './routes'
 
-// Lazy load pages
-const Home = React.lazy(() => import('./pages/Home'))
-const Story = React.lazy(() => import('./pages/Story'))
-const Profile = React.lazy(() => import('./pages/Profile'))
-const NotFound = React.lazy(() => import('./pages/NotFound'))
+// Add Google Fonts for fantasy theme
+const Fonts = () => (
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap"
+    rel="stylesheet"
+  />
+)
 
-const App = () => {
+function App() {
   return (
-    <ChakraProvider theme={theme}>
+    <ChakraProvider theme={fantasyTheme}>
+      <Fonts />
       <Router>
-        <Navigation />
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/story" element={<Story />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+        <AppRoutes />
       </Router>
     </ChakraProvider>
   )
