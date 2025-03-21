@@ -10,7 +10,7 @@ type Config = {
 }
 
 export function register(config?: Config) {
-  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+  if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     // Use window.location.origin as base URL
     const publicUrl = new URL(window.location.origin)
     
