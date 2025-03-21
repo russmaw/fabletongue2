@@ -24,6 +24,7 @@
     "@chakra-ui/theme-tools": "^2.1.2",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
+    "@netlify/functions": "3.0.4",
     "@supabase/supabase-js": "^2.39.7",
     "@types/howler": "^2.2.12",
     "@types/node": "^20.11.24",
@@ -46,7 +47,6 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@netlify/functions": "3.0.4",
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
