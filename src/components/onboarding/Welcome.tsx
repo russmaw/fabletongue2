@@ -61,6 +61,17 @@ const Welcome: React.FC = () => {
 
   const handleNext = () => {
     try {
+      // Unlock the tutorial_started achievement on first step
+      if (currentStep === 0) {
+        unlockAchievement('tutorial_started')
+        const achievement = achievements.find(a => a.id === 'tutorial_started')
+        if (achievement) {
+          setCurrentAchievement(achievement)
+          onOpen()
+        }
+      }
+
+      // Handle language selection step
       if (currentStep === 1 && selectedLanguage) {
         setLanguage(selectedLanguage)
         unlockAchievement('language_selected')
@@ -71,6 +82,7 @@ const Welcome: React.FC = () => {
         }
       }
       
+      // Handle tutorial completion
       if (currentStep === tutorialSteps.length - 1) {
         setHasCompletedTutorial(true)
         unlockAchievement('tutorial_complete')
@@ -79,12 +91,14 @@ const Welcome: React.FC = () => {
           setCurrentAchievement(achievement)
           onOpen()
         }
+        // Navigate to story after a short delay to show the achievement
         setTimeout(() => {
           navigate('/story')
-        }, 1500)
+        }, 2000)
         return
       }
       
+      // Progress to next step
       setCurrentStep(currentStep + 1)
     } catch (error) {
       console.error('Error in handleNext:', error)
