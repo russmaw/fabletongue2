@@ -3,7 +3,7 @@ interface ScriptOptions {
   async?: boolean;
   defer?: boolean;
   onLoad?: () => void;
-  onError?: (error: Error) => void;
+  onError?: (error: string | Event) => void;
 }
 
 export const loadScript = (src: string, options: ScriptOptions = {}): Promise<void> => {
@@ -24,11 +24,11 @@ export const loadScript = (src: string, options: ScriptOptions = {}): Promise<vo
       resolve();
     };
 
-    script.onerror = (error) => {
+    script.onerror = (event: string | Event) => {
       if (options.onError) {
-        options.onError(error as Error);
+        options.onError(event);
       }
-      reject(error);
+      reject(new Error(`Failed to load script: ${src}`));
     };
 
     document.head.appendChild(script);
