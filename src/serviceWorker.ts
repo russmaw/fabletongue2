@@ -11,17 +11,15 @@ type Config = {
 
 export function register(config?: Config) {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-    const publicUrl = new URL(
-      process.env.PUBLIC_URL || window.location.origin,
-      window.location.href
-    )
-    
+    const baseUrl = process.env.PUBLIC_URL || window.location.origin
+    const publicUrl = new URL(baseUrl, window.location.href)
+
     if (publicUrl.origin !== window.location.origin) {
       return
     }
 
     window.addEventListener('load', () => {
-      const swUrl = `${publicUrl.pathname}service-worker.js`.replace(/\/+/g, '/')
+      const swUrl = `${publicUrl.origin}/service-worker.js`
 
       if (isLocalhost) {
         checkValidServiceWorker(swUrl, config)

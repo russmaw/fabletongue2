@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#0ea5e9" />
     <meta
       name="description"
       content="FableTongue - A Fantasy Language Learning Adventure"
@@ -15,6 +15,52 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
     <title>FableTongue</title>
+    <script>
+      // Convert SVG to PNG on load
+      window.addEventListener('load', function() {
+        const sizes = [192, 512];
+        sizes.forEach(size => {
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('width', size);
+          svg.setAttribute('height', size);
+          svg.setAttribute('viewBox', '0 0 ' + size + ' ' + size);
+          
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('width', size);
+          rect.setAttribute('height', size);
+          rect.setAttribute('fill', '#0ea5e9');
+          
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', size/2);
+          text.setAttribute('y', size/2);
+          text.setAttribute('font-family', 'Arial');
+          text.setAttribute('font-size', size/4);
+          text.setAttribute('fill', 'white');
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('dominant-baseline', 'middle');
+          text.textContent = 'FT';
+          
+          svg.appendChild(rect);
+          svg.appendChild(text);
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const data = new XMLSerializer().serializeToString(svg);
+          const img = new Image();
+          img.onload = function() {
+            ctx.drawImage(img, 0, 0);
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'image';
+            link.href = canvas.toDataURL('image/png');
+            document.head.appendChild(link);
+          };
+          img.src = 'data:image/svg+xml;base64,' + btoa(data);
+        });
+      });
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
