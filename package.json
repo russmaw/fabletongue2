@@ -23,6 +23,11 @@
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "@supabase/supabase-js": "^2.39.7",
+    "@types/node": "^20.11.24",
+    "@types/react": "^18.2.64",
+    "@types/react-dom": "^18.2.21",
+    "@typescript-eslint/eslint-plugin": "6.21.0",
+    "@typescript-eslint/parser": "6.21.0",
     "@vitejs/plugin-react": "^4.2.1",
     "framer-motion": "^11.0.14",
     "howler": "^2.2.4",
@@ -37,11 +42,6 @@
   },
   "devDependencies": {
     "@types/howler": "^2.2.12",
-    "@types/node": "^20.11.24",
-    "@types/react": "^18.2.64",
-    "@types/react-dom": "^18.2.21",
-    "@typescript-eslint/eslint-plugin": "6.21.0",
-    "@typescript-eslint/parser": "6.21.0",
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5"
