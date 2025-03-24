@@ -1,6 +1,5 @@
 import React from 'react'
 import {
-  Container,
   VStack,
   Heading,
   Box,
@@ -9,7 +8,7 @@ import { InteractiveStory } from '../components/story/InteractiveStory'
 
 export const Story: React.FC = () => {
   return (
-    <Container maxW="container.xl" py={8}>
+    <Box maxW="container.xl" mx="auto" py={8}>
       <VStack spacing={8} align="stretch">
         <Box>
           <Heading size="lg" mb={4}>
@@ -18,7 +17,7 @@ export const Story: React.FC = () => {
         </Box>
         <InteractiveStory />
       </VStack>
-    </Container>
+    </Box>
   )
 }
 

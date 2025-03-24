@@ -4,7 +4,6 @@ import {
   VStack,
   Text,
   Button,
-  Container,
   Heading,
   useColorModeValue,
   Icon,

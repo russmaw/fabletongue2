@@ -1,5 +1,5 @@
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
-import { mode } from '@chakra-ui/theme-tools'
+import { mode, type StyleFunctionProps } from '@chakra-ui/theme-tools'
 
 const config: ThemeConfig = {
   initialColorMode: 'light',
@@ -41,7 +41,7 @@ const fantasyTheme = extendTheme({
   components: {
     Button: {
       variants: {
-        fantasy: (props: any) => ({
+        fantasy: (props: StyleFunctionProps) => ({
           bg: mode('fantasy.100', 'fantasy.800')(props),
           color: mode('fantasy.800', 'fantasy.100')(props),
           _hover: {
@@ -84,7 +84,7 @@ const fantasyTheme = extendTheme({
     },
   },
   styles: {
-    global: (props: any) => ({
+    global: (props: StyleFunctionProps) => ({
       body: {
         bg: mode('gray.50', 'gray.900')(props),
       },
