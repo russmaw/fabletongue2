@@ -1,43 +1,65 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { generateNonce } from '../utils/scriptLoader';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useToast } from '@chakra-ui/react';
 
 interface SecurityContextType {
-  nonce: string;
-  refreshNonce: () => void;
+  isAuthenticated: boolean;
+  token: string | null;
+  login: (token: string) => void;
+  logout: () => void;
 }
 
-const SecurityContext = createContext<SecurityContextType | undefined>(undefined);
+const SecurityContext = createContext<SecurityContextType>({
+  isAuthenticated: false,
+  token: null,
+  login: () => {},
+  logout: () => {},
+});
+
+export const useSecurity = () => useContext(SecurityContext);
 
 export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [nonce, setNonce] = useState<string>(generateNonce());
-
-  const refreshNonce = () => {
-    setNonce(generateNonce());
-  };
+  const [token, setToken] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
-    // Update meta tag with nonce
-    const meta = document.createElement('meta');
-    meta.httpEquiv = 'Content-Security-Policy';
-    meta.content = `script-src 'self' 'nonce-${nonce}' 'strict-dynamic';`;
-    document.head.appendChild(meta);
+    // Check for existing token in localStorage
+    const storedToken = localStorage.getItem('auth_token');
+    if (storedToken) {
+      setToken(storedToken);
+      setIsAuthenticated(true);
+    }
+  }, []);
 
-    return () => {
-      document.head.removeChild(meta);
-    };
-  }, [nonce]);
+  const login = (newToken: string) => {
+    localStorage.setItem('auth_token', newToken);
+    setToken(newToken);
+    setIsAuthenticated(true);
+    toast({
+      title: 'Login Successful',
+      description: 'Welcome to FableTongue!',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
+  const logout = () => {
+    localStorage.removeItem('auth_token');
+    setToken(null);
+    setIsAuthenticated(false);
+    toast({
+      title: 'Logged Out',
+      description: 'Come back soon!',
+      status: 'info',
+      duration: 3000,
+      isClosable: true,
+    });
+  };
 
   return (
-    <SecurityContext.Provider value={{ nonce, refreshNonce }}>
+    <SecurityContext.Provider value={{ isAuthenticated, token, login, logout }}>
       {children}
     </SecurityContext.Provider>
   );
-};
-
-export const useSecurity = () => {
-  const context = useContext(SecurityContext);
-  if (context === undefined) {
-    throw new Error('useSecurity must be used within a SecurityProvider');
-  }
-  return context;
 }; 

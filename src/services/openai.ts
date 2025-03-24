@@ -19,11 +19,28 @@ const createOpenAIClient = () => {
   }
 }
 
-interface StoryPrompt {
-  theme: string
-  genre: string
+interface StoryContext {
   targetLanguage: string
   difficulty: 'beginner' | 'intermediate' | 'advanced'
+  previousContent?: string
+  learnedWords?: string[]
+  currentScene?: string
+  playerChoices?: string[]
+}
+
+interface StoryResponse {
+  content: string
+  newWords: Array<{
+    word: string
+    translation: string
+    pronunciation: string
+    example: string
+  }>
+  choices: Array<{
+    text: string
+    description: string
+  }>
+  culturalNotes?: string[]
 }
 
 const getDifficultyGuidelines = (difficulty: string) => {
@@ -35,6 +52,7 @@ const getDifficultyGuidelines = (difficulty: string) => {
         - Repeat key vocabulary naturally throughout the story
         - Focus on everyday situations and basic descriptions
         - Include common greetings and basic expressions
+        - Limit new vocabulary to 3-5 words per scene
       `
     case 'intermediate':
       return `
@@ -43,6 +61,7 @@ const getDifficultyGuidelines = (difficulty: string) => {
         - Create more complex dialogue situations
         - Use descriptive vocabulary and varied sentence structures
         - Incorporate cultural elements and customs
+        - Introduce 5-8 new words per scene
       `
     case 'advanced':
       return `
@@ -51,70 +70,118 @@ const getDifficultyGuidelines = (difficulty: string) => {
         - Create nuanced dialogue and character development
         - Incorporate cultural nuances and historical references
         - Use advanced idiomatic expressions and regional variations
+        - Introduce 8-12 new words per scene
       `
     default:
       return ''
   }
 }
 
-export const generateStory = async (prompt: StoryPrompt) => {
+export const generateStoryContent = async (context: StoryContext): Promise<StoryResponse> => {
   try {
     const openai = createOpenAIClient()
-    const difficultyGuidelines = getDifficultyGuidelines(prompt.difficulty)
+    const difficultyGuidelines = getDifficultyGuidelines(context.difficulty)
     
+    const systemPrompt = `You are an interactive storyteller and language teacher specializing in ${context.targetLanguage}.
+    Create an engaging, branching narrative that helps learners improve their language skills naturally.
+    
+    Story Guidelines:
+    ${difficultyGuidelines}
+    
+    Story Format:
+    1. Write in ${context.targetLanguage}
+    2. Include natural dialogue and descriptions
+    3. Weave cultural elements naturally into the story
+    4. Provide 3-4 meaningful choices that affect the story
+    5. Include new vocabulary that fits the context
+    
+    Previous learned words: ${context.learnedWords?.join(', ') || 'None'}
+    Current scene: ${context.currentScene || 'Beginning'}
+    
+    After each scene, provide:
+    1. The story content
+    2. New vocabulary with translations and examples
+    3. Multiple choice options for the player
+    4. Cultural notes (if relevant)`
+
+    const userPrompt = context.previousContent
+      ? `Continue the story from this point: ${context.previousContent}`
+      : `Start a new story in ${context.targetLanguage} at ${context.difficulty} level.`
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
         {
           role: 'system',
-          content: `You are a creative storyteller and language teacher specializing in ${prompt.targetLanguage}. 
-          Create an engaging and educational story that helps learners improve their language skills.
-          
-          Story Guidelines:
-          ${difficultyGuidelines}
-          
-          Story Format:
-          1. Title in both ${prompt.targetLanguage} and English
-          2. Story content in ${prompt.targetLanguage}
-          3. Include natural repetition of key phrases
-          4. Incorporate dialogue with common expressions
-          5. Weave cultural elements naturally into the story
-          
-          Theme: ${prompt.theme}
-          Genre: ${prompt.genre}
-          
-          After the story, provide:
-          - Brief summary in English
-          - List of key expressions used
-          - Cultural notes (if any)`,
+          content: systemPrompt,
         },
         {
           role: 'user',
-          content: `Create a ${prompt.difficulty} level story in ${prompt.targetLanguage} about ${prompt.theme} in the ${prompt.genre} genre.`,
+          content: userPrompt,
         },
       ],
       temperature: 0.7,
-      max_tokens: 1500,
+      max_tokens: 2000,
     })
 
     if (!completion.choices[0]?.message?.content) {
       throw new Error('No story content received from OpenAI')
     }
 
-    return completion.choices[0].message.content
-  } catch (error) {
-    console.error('Error generating story:', error)
-    if (error instanceof Error) {
-      throw new Error(`Failed to generate story: ${error.message}`)
+    // Parse the response into structured data
+    const content = completion.choices[0].message.content
+    const sections = content.split('\n\n')
+    
+    // Extract new words
+    const newWordsSection = sections.find(s => s.includes('New Vocabulary:'))
+    const newWords = newWordsSection
+      ? newWordsSection
+          .split('\n')
+          .slice(1)
+          .map(line => {
+            const [word, translation, pronunciation, example] = line.split('|').map(s => s.trim())
+            return { word, translation, pronunciation, example }
+          })
+      : []
+
+    // Extract choices
+    const choicesSection = sections.find(s => s.includes('Choices:'))
+    const choices = choicesSection
+      ? choicesSection
+          .split('\n')
+          .slice(1)
+          .map(line => {
+            const [text, description] = line.split('|').map(s => s.trim())
+            return { text, description }
+          })
+      : []
+
+    // Extract cultural notes
+    const culturalNotesSection = sections.find(s => s.includes('Cultural Notes:'))
+    const culturalNotes = culturalNotesSection
+      ? culturalNotesSection.split('\n').slice(1)
+      : []
+
+    return {
+      content: sections[0], // Main story content
+      newWords,
+      choices,
+      culturalNotes,
     }
-    throw new Error('Failed to generate story: Unknown error')
+  } catch (error) {
+    console.error('Error generating story content:', error)
+    if (error instanceof Error) {
+      throw new Error(`Failed to generate story content: ${error.message}`)
+    }
+    throw new Error('Failed to generate story content: Unknown error')
   }
 }
 
 export const generateVocabularyExercise = async (
   text: string,
   targetLanguage: string,
-  difficulty: string
+  difficulty: string,
+  learnedWords: string[]
 ) => {
   try {
     const openai = createOpenAIClient()
@@ -139,6 +206,7 @@ export const generateVocabularyExercise = async (
              - Matching exercises
           
           Difficulty level: ${difficulty}
+          Previously learned words: ${learnedWords.join(', ')}
           Focus on practical usage and natural language acquisition.`,
         },
         {
@@ -165,6 +233,6 @@ export const generateVocabularyExercise = async (
 }
 
 export default {
-  generateStory,
+  generateStoryContent,
   generateVocabularyExercise,
 } 

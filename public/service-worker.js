@@ -3,11 +3,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/logo192.svg',
-  '/logo512.svg',
-  '/favicon.ico',
-  '/assets/fonts/fantasy.ttf',
-  '/assets/fonts/scroll.ttf'
+  '/favicon.svg'
 ];
 
 // Install event - cache static assets
@@ -16,7 +12,14 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        // Cache resources one by one to handle failures gracefully
+        return Promise.allSettled(
+          urlsToCache.map(url => 
+            cache.add(url).catch(error => {
+              console.warn(`Failed to cache ${url}:`, error);
+            })
+          )
+        );
       })
   );
 });

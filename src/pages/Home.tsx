@@ -1,113 +1,131 @@
-import { Box, Container, Heading, Text, SimpleGrid, Card, CardBody, CardHeader, Button, VStack, useColorModeValue } from '@chakra-ui/react'
-import { FaBook, FaMoon } from 'react-icons/fa'
-import { useNavigate } from 'react-router-dom'
+import React from 'react';
+import {
+  Box,
+  Button,
+  Container,
+  Heading,
+  Text,
+  VStack,
+  HStack,
+  Icon,
+  useColorModeValue,
+} from '@chakra-ui/react';
+import { FaBook, FaGraduationCap, FaLanguage } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { useSecurity } from '../contexts/SecurityContext';
+import { useTutorialStore } from '../stores/tutorialStore';
 
-const Home = () => {
-  const navigate = useNavigate()
-  const cardBg = useColorModeValue('white', 'gray.700')
-  const cardHoverBg = useColorModeValue('gray.50', 'gray.600')
+export const Home: React.FC = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useSecurity();
+  const { isCompleted } = useTutorialStore();
 
-  const modes = [
-    {
-      title: 'Story Mode',
-      description: 'Immerse yourself in longer, interactive stories that adapt to your learning level.',
-      icon: <FaBook size="2em" />,
-      action: () => navigate('/story'),
-    },
-    {
-      title: 'Bedtime Stories',
-      description: 'Short, relaxing stories perfect for evening practice sessions.',
-      icon: <FaMoon size="2em" />,
-      action: () => navigate('/story?mode=bedtime'),
-    },
-  ]
+  const bgColor = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+
+  const handleStart = () => {
+    if (isAuthenticated) {
+      if (isCompleted) {
+        navigate('/story');
+      } else {
+        navigate('/tutorial');
+      }
+    } else {
+      navigate('/welcome');
+    }
+  };
 
   return (
-    <Box py={{ base: 8, md: 12, lg: 16 }}>
-      <Container maxW="container.xl">
-        <VStack spacing={{ base: 6, md: 8, lg: 10 }} align="stretch">
-          <Box textAlign="center" mb={{ base: 8, md: 12 }}>
-            <Heading
-              as="h1"
-              size={{ base: 'xl', md: '2xl' }}
-              mb={4}
-              bgGradient="linear(to-r, brand.500, accent.500)"
-              bgClip="text"
-            >
-              Welcome to FableTongue
-            </Heading>
-            <Text
-              fontSize={{ base: 'md', md: 'lg' }}
-              color={useColorModeValue('gray.600', 'gray.300')}
-              maxW="2xl"
-              mx="auto"
-            >
-              Choose your learning adventure and start improving your language skills through engaging stories.
-            </Text>
-          </Box>
+    <Container maxW="container.lg" py={16}>
+      <VStack spacing={12} align="center">
+        <VStack spacing={4} textAlign="center">
+          <Heading
+            as="h1"
+            size="2xl"
+            bgGradient="linear(to-r, purple.500, pink.500)"
+            bgClip="text"
+          >
+            Welcome to FableTongue
+          </Heading>
+          <Text fontSize="xl" color="gray.600">
+            Your journey to language mastery begins here
+          </Text>
+        </VStack>
 
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={{ base: 4, md: 6, lg: 8 }}>
-            {modes.map((mode) => (
-              <Card
-                key={mode.title}
-                bg={cardBg}
-                _hover={{
-                  transform: 'translateY(-4px)',
-                  boxShadow: 'lg',
-                  bg: cardHoverBg,
-                }}
-                transition="all 0.3s"
-                cursor="pointer"
-                onClick={mode.action}
-              >
-                <CardHeader>
-                  <Box color="brand.500" mb={4}>
-                    {mode.icon}
-                  </Box>
-                  <Heading size="md">{mode.title}</Heading>
-                </CardHeader>
-                <CardBody>
-                  <Text color={useColorModeValue('gray.600', 'gray.300')}>
-                    {mode.description}
-                  </Text>
-                  <Button
-                    mt={4}
-                    colorScheme="brand"
-                    size={{ base: 'md', md: 'lg' }}
-                    w="full"
-                  >
-                    Start Learning
-                  </Button>
-                </CardBody>
-              </Card>
-            ))}
-          </SimpleGrid>
-
+        <HStack spacing={8} w="100%" justify="center">
           <Box
-            mt={{ base: 8, md: 12 }}
-            p={{ base: 6, md: 8 }}
-            bg={cardBg}
-            rounded="lg"
+            p={6}
+            bg={bgColor}
+            borderRadius="lg"
+            boxShadow="lg"
+            borderWidth="1px"
+            borderColor={borderColor}
+            w="300px"
             textAlign="center"
           >
-            <Heading size="md" mb={4}>
-              Track Your Progress
+            <Icon as={FaLanguage} boxSize={10} color="purple.500" mb={4} />
+            <Heading size="md" mb={2}>
+              Interactive Stories
             </Heading>
-            <Text mb={6}>
-              View your learning statistics and achievements in your profile.
+            <Text color="gray.600" mb={4}>
+              Learn through engaging, AI-generated stories in your target language
             </Text>
-            <Button
-              onClick={() => navigate('/profile')}
-              size={{ base: 'md', md: 'lg' }}
-              colorScheme="accent"
-            >
-              View Profile
-            </Button>
           </Box>
-        </VStack>
-      </Container>
-    </Box>
-  )
-}
 
-export default Home 
+          <Box
+            p={6}
+            bg={bgColor}
+            borderRadius="lg"
+            boxShadow="lg"
+            borderWidth="1px"
+            borderColor={borderColor}
+            w="300px"
+            textAlign="center"
+          >
+            <Icon as={FaBook} boxSize={10} color="purple.500" mb={4} />
+            <Heading size="md" mb={2}>
+              Vocabulary Learning
+            </Heading>
+            <Text color="gray.600" mb={4}>
+              Master new words naturally through context and practice
+            </Text>
+          </Box>
+
+          <Box
+            p={6}
+            bg={bgColor}
+            borderRadius="lg"
+            boxShadow="lg"
+            borderWidth="1px"
+            borderColor={borderColor}
+            w="300px"
+            textAlign="center"
+          >
+            <Icon as={FaGraduationCap} boxSize={10} color="purple.500" mb={4} />
+            <Heading size="md" mb={2}>
+              Cultural Immersion
+            </Heading>
+            <Text color="gray.600" mb={4}>
+              Experience language in its cultural context
+            </Text>
+          </Box>
+        </HStack>
+
+        <Button
+          size="lg"
+          colorScheme="purple"
+          onClick={handleStart}
+          px={8}
+        >
+          {isAuthenticated
+            ? isCompleted
+              ? 'Continue Your Story'
+              : 'Start Tutorial'
+            : 'Get Started'}
+        </Button>
+      </VStack>
+    </Container>
+  );
+};
+
+export default Home; 
