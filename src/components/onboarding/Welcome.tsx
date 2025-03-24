@@ -1,11 +1,10 @@
 import React from 'react'
 import {
-  Box,
+  VStack,
+  Text,
   Button,
   Container,
   Heading,
-  Text,
-  VStack,
 } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
 import { useSecurity } from '../../contexts/SecurityContext'

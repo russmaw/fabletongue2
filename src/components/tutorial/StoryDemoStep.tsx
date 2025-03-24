@@ -4,14 +4,13 @@ import {
   VStack,
   Text,
   Button,
+  Container,
   Heading,
   useColorModeValue,
   Icon,
   HStack,
   Collapse,
   useDisclosure,
-  Badge,
-  Progress,
   Tooltip,
 } from '@chakra-ui/react';
 import { FaArrowRight, FaBook, FaLightbulb, FaChevronDown, FaChevronUp, FaStar } from 'react-icons/fa';
